@@ -1,0 +1,103 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-light text-center rounded p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 class="mb-0">Banner</h4>
+            <!-- <a href="">Show All</a> -->
+            <div>
+                <!-- <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal"><i class="material-icons">&#xE147;</i> <span>Add New Product</span></a> -->
+                <a href="{% url 'add_banner' %}" class="btn btn-success">Add Banner</a>
+
+
+            </div>
+        </div>
+
+        
+        <div class="table-responsive">
+            <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <thead>
+                    <tr class="text-dark">
+                        <th scope="col">Image</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Offer</th>
+
+                       
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <!-- Table Body -->
+                <tbody>
+                    {% for bann in banner %}
+                    <tr>
+                        <td>
+                            {% if bann.image %}
+                                <img src="{{ bann.image.url }}" alt="" width="100" height="100">
+                            {% else %}
+                                No image available
+                            {% endif %}
+                        </td>
+                        
+                        <td>{{ bann.description }}</td>
+                        <td>{{ bann.offer_description }}</td>
+                       
+                        <td>
+                            <a href="{% url 'edit_banner' banner_id=bann.id %}" class="edit" data-toggle="modal">
+                                <button class="btn btn-success">edit</button>
+                            </a>
+                            <a href="#" class="delete" data-toggle="modal" data-target="#deleteModal">
+                                <button class="btn btn-danger">remove</button>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %} 
+
+                </tbody>
+            </table>
+            <!-- Pagination -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; First</a>
+                <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+        
+                <span class="current-page">{{ page_obj.number }}</span>
+        
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                {% endif %}
+            </div>
+            <!-- Delete confirmation modals -->
+            {% for bann in banner %}
+            <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Delete banner</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete this banner?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <!-- <form action="{% url 'delete_banner' bann.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="submit" class="btn btn-danger" value="Delete"> -->
+                                <a href="{% url 'delete_banner' bann.id %}"><button class="btn btn-danger">Delete</button></a>
+                            <!-- </form> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+
+
+{% endblock %}

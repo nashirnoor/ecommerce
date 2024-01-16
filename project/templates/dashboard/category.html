@@ -1,0 +1,128 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+            <div class="content">
+
+                <div class="row">
+					
+                    <div class="col-sm-4 col-3">
+                        <h4 class="page-title">Category</h4>
+                    </div>
+					<div>
+						<form method="get" class="d-none d-md-flex ms-4" action="{% url 'searchcategory' %}">
+							<input class="form-control border-0" type="search" name="q"  placeholder="Search">
+							<div class="input-group-append">
+								<button type="submit" class="btn btn-primary">
+									<i class="fa fa-search"></i>
+								</button>
+							</div>
+						</form>
+					</div>
+							
+
+                    <div class="col-sm-8 col-9 text-left m-b-20 ml-3">
+                        <a href="{% url 'add_category' %}" class="btn btn btn-primary btn-rounded float-right"><i class="fa fa-plus"></i> Add Category</a>
+                    </div>
+                </div>
+				<div class="row">
+					
+					<div class="col-md-8 pr-2">
+						<div class="table-responsive">
+							<table class="table table-striped custom-table">
+								<thead>
+									<tr>
+										<th>Category Name</th>
+										<th>Description</th>
+										<th>Images</th>
+										<th>Offer Details</th>
+                                        <th>Offer Price</th>
+										<th>Update</th>
+										<th>Status</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% if messages %}
+								<ul class="messages">
+									{% for message in messages %}
+										<h1><li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li></h1>
+									{% endfor %}
+								</ul>
+							{% endif %}
+									<!-- {% for i in data %}
+									<tr>
+										<td>{{i.name}}</td>
+										<td><img width="90" height="50" src="{{i.img.url}}" alt="Li's Product Image"></td>
+										<td>{{i.descriptions}}</td>
+										<td><a type="button" href="{% url 'update_main_category' id=i.id %}" class="btn btn-success">Edit</a></td>
+										<td><a type="button" href="{% url 'delete_main_category' id=i.id %}" class="btn btn-danger">Remove</a></td>
+									</tr>	
+									{% endfor%}  -->
+
+									{% for category in categories %}
+                                <tr>
+                                    <td>{{ category.category_name }}</td>
+                                    <td>{{ category.description }}</td>
+                                    <td><img src="{{ category.image.url }}" alt="" width="100" height="100"></td>
+                                    <td>{{ category.category_offer_description }}</td>
+                                    <td>{{ category.category_offer }}</td>
+                                    <!-- <td> -->
+                                        <!-- <a href="{% url 'edit_category' category_id=category.id %}" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                                        <a href="#" class="delete" data-toggle="modal" data-target="#deleteModal{{ category.id }}"><i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i></a> -->
+										<td><a type="button" href="{% url 'edit_category' category_id=category.id %}" class="btn btn-info">Edit</a></td>
+										<!-- <td><a type="button" href="" data-toggle="modal" class="btn btn-danger" data-target="#deleteModal{{ category.id }}">Delete</a></td> -->
+                                    <!-- </td> -->
+									<td class="{% if category.is_listed %}text-success{% else %}text-danger{% endif %}">
+										{% if category.is_listed %}Listed{% else %}Unlisted{% endif %}
+									</td>
+									
+
+                                </tr>
+                                {% endfor %}
+								</tbody>
+							</table>
+
+
+							 <!-- Pagination -->
+							 <div class="pagination">
+								{% if categories.has_previous %}
+									<a href="?page=1">&laquo; First</a>
+									<a href="?page={{ categories.previous_page_number }}">Previous</a>
+								{% endif %}
+						
+								<span class="current-page">{{ categories.number }}</span>
+						
+								{% if categories.has_next %}
+									<a href="?page={{ categories.next_page_number }}">Next</a>
+									<a href="?page={{ categories.paginator.num_pages }}">Last &raquo;</a>
+								{% endif %}
+							</div>
+							<!-- Delete confirmation modals -->
+							{% for category in categories %}
+							<div class="modal fade" id="deleteModal{{ category.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+								<div class="modal-dialog" role="document">
+									<div class="modal-content">
+										<div class="modal-header">
+											<h5 class="modal-title" id="deleteModalLabel">Delete category</h5>
+											<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<span aria-hidden="true">&times;</span>
+											</button>
+										</div>
+										<div class="modal-body">
+											<p>Are you sure you want to delete this category?</p>
+										</div>
+										<!-- <div class="modal-footer">
+											<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+											<form action="" method="post">
+												{% csrf_token %}
+												<input type="submit" class="btn btn-danger" value="Delete">
+											</form>
+										</div> -->
+									</div>
+								</div>
+							</div>
+							{% endfor %}
+						</div>
+					</div>
+                </div>
+            </div>
+{% endblock content %}                  

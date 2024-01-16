@@ -1,0 +1,66 @@
+
+{% extends 'main/base.html' %}
+{% load static %}
+{% block content %}
+            <!-- Begin Li's Breadcrumb Area -->
+            <div class="breadcrumb-area">
+                <div class="container">
+                    <div class="breadcrumb-content">
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li class="active">OTP </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Li's Breadcrumb Area End Here -->
+            <!-- Begin Login Content Area -->
+            <div class="page-section mb-60">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6 mb-30">
+                            <!-- Login Form s-->
+                            <form action="" method="post">
+                                <div class="login-form">
+                                    {% if messages %}
+                                    <div id="messages-container">
+                                    <div class="alert alert-success" role="alert">
+                                      
+                                      <ul class="messages">
+                                          {% for message in messages %}
+                                          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                          {% endfor %}
+                                      </ul>
+                                      <script>
+                                        setTimeout(function() {
+                                          var container = document.getElementById('messages-container');
+                                          container.parentNode.removeChild(container);
+                                            
+                                        }, 2000);
+                                      </script>   
+                                      
+                                    </div>
+                                    </div>
+                              {% endif %}
+                                    <h4 class="login-title">OTP Validation</h4>
+                                        <div class="col-12 mb-20">
+                                            <label>Enter OTP here</label>
+                                            {% csrf_token %}
+                                            <input class="mb-0" type="text" placeholder="Enter 6 digit veryfication code" id="otp" name="otp" pattern="[0-9]{6}" title="Please enter a 6-digit code" required>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 text-left">
+                                                <button class="register-button mt-0">Login</button>
+                                            </div>
+                                        </div>
+                                        </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Login Content Area End Here -->
+        {% endblock content %}
+           

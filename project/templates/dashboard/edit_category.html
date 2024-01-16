@@ -1,0 +1,69 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <h4 class="page-title">Edit Categories</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <form action="{% url 'update_category' category.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>category name</label>
+                        <input class="form-control" type="text"
+                        placeholder="Enter the main category here"
+                        name= "category_name"
+                        value="{{ category.category_name }}"
+                        required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input class="form-control" type="text" 
+                        placeholder="Add description"
+                        name= "description"
+                        value="{{ category.description }}"
+                        required>
+                    </div>
+                    <div class="form-group">
+                        <label>Offer Details</label>
+                        <input name="offer_details" type="text" class="form-control"  value= "{{ category.category_offer_description }}" >
+                    </div>
+
+                    <div class="form-group">
+                        <label>Offer price</label>
+                        <input name="offer_price" type="text" class="form-control"  value= "{{ category.category_offer  }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Current Image</label>
+                        <br>
+                        <br>
+                        {% if category.image %}
+                            <img src="{{ category.image.url }}" alt="Current Image" style="max-width: 200px;">
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Add images</label>
+                        <input name="image" type="file" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="is_listed">Listed:</label>
+                        <input type="checkbox" id="is_listed" name="is_listed" {% if category.is_listed %}checked{% endif %}>
+                    </div>
+                    <div class="row">
+                        <div class="m-t-20 text-center">
+                            <a href="{% url 'category' %}">
+                            <button class="btn btn-primary submit-btn" type="button" data-dismiss="modal">Cancel</button></a>
+                            <input type="submit" class="btn btn-info" value="Update">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

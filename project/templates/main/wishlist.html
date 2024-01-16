@@ -1,0 +1,61 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block content %}
+            <!--Wishlist Area Strat-->
+            <!-- Wishlist Area Start -->
+<!-- main/wishlist.html -->
+
+    <div class="container mt-4">
+        <h2>Your Wishlist</h2>
+        <table class="table table-bordered text-center mb-0">
+            <thead class="bg-yellow text-dark">
+                <tr>
+                    <th colspan="2">Products</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                    <th>Remove</th>
+                    
+                </tr>
+            </thead>
+            <tbody class="align-middle">
+                {% for wishlist_item in wishlist_items %}
+                    <tr id="wishlist_row_{{ wishlist_item.id }}">
+                        <td class="align-middle"><img src="{{ wishlist_item.product.image.url }}" alt="" style="width: 50px;"></td>
+                        <td class="align-middle">{{ wishlist_item.product.product_name }}</td>
+                        <td class="align-middle">
+                            {% if wishlist_item.product.category.category_offer %}
+                                ₹{{ wishlist_item.product.price }} 
+                            {% else %}
+                                ₹{{ wishlist_item.product.price }}
+                            {% endif %}
+                        </td>
+                        <td class="align-middle text-center">
+                            <button class="btn btn-sm btn-primary" type="button" onclick="addToCart({{ wishlist_item.id }})">Add to Cart</button>
+                        </td>                    
+                        <td class="align-middle">
+                            <form action="{% url 'remove_from_wishlist' wishlist_item.id %}" method="POST" id="remove_wishlist_form_{{ wishlist_item.id }}">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-primary" type="submit"><i class="fa fa-times"></i></button>
+                            </form>
+                        </td> 
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+    <script>
+        function addToCart(wishlistItemId) {
+            // Trigger form submission
+            document.getElementById(`remove_wishlist_form_${wishlistItemId}`).submit();
+            // Remove the row from the wishlist table
+            document.getElementById(`wishlist_row_${wishlistItemId}`).remove();
+        }
+    </script>
+<!-- Wishlist Area End -->
+
+        {% endblock content %}
+        
+       
+           

@@ -1,0 +1,65 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+            <div class="content">
+                <div class="row">
+                    <div class="col-sm-4 col-3">
+                        <h4 class="page-title">Customers</h4>
+                    </div>
+					<form method="get" class="d-none d-md-flex ms-4" action="{% url 'user:searchuser' %}">
+						<input class="form-control border-0" type="search" name="q"  placeholder="Search">
+						<div class="input-group-append">
+							<button type="submit" class="btn btn-primary">
+								<i class="fa fa-search"></i>
+							</button>
+						</div>
+					</form>
+                    <div class="col-sm-8 col-9 text-right m-b-20"> 
+						
+                    </div> 
+                </div>
+				<div class="row">
+					<div class="col-md-12">
+						<div class="table-responsive">
+							<table class="table table-striped custom-table">
+								<thead>
+									<tr>
+										<th scope="col">Name</th>
+										<th scope="col">E Mail</th>
+										<th scope="col">Mobile</th>
+										<th scope="col">Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for customer in page_obj %}
+									<tr>
+										<td>{{ customer.username }}</td>
+										<td>{{ customer.email }}</td>
+										<td>{{ customer.number }}</td>
+										{% if customer.is_active %}
+                                        <td><a class="btn btn-sm btn-danger" href="{% url 'block_customer' customer_id=customer.id %}">Block</a></td>
+                                        {% else %}
+                                        <td><a class="btn btn-sm btn-success" href="{% url 'unblock_customer' customer_id=customer.id %}">Unblock</a></td>
+                                        {% endif %}
+                                    </tr>	
+								    {% endfor %}
+								</tbody>
+							</table>
+						</div>
+						<div class="pagination">
+							{% if page_obj.has_previous %}
+								<a href="?page=1">&laquo; First</a>
+								<a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+							{% endif %}
+				
+							<span class="current-page">{{ page_obj.number }}</span>
+				
+							{% if page_obj.has_next %}
+								<a href="?page={{ page_obj.next_page_number }}">Next</a>
+								<a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+							{% endif %}
+						</div>
+					</div>
+                </div>
+            </div>
+{% endblock content %}

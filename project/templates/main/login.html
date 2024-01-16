@@ -1,0 +1,140 @@
+
+{% extends 'main/base.html' %}
+{% load static %}
+{% block content %}
+            <!-- Begin Li's Breadcrumb Area -->
+            <div class="breadcrumb-area">
+                <div class="container">
+                    <div class="breadcrumb-content">
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li class="active">Login Now</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Li's Breadcrumb Area End Here -->
+            <!-- Begin Login Content Area -->
+            <div class="page-section mb-60">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6 mb-30">
+                            <!-- Login Form s-->
+                            <form action="" method="post" >
+                                <div>
+                                    {% if messages %}
+                                    <div id="messages-container">
+                                      <div class="alert alert-success" role="alert" 
+                                        style="background-color: green; border-color: transparent; font-size: 18px;">
+                      
+                                        <ul class="messages">
+                                          {% for message in messages %}
+                                          <li{% if message.tags %} class="{{ message.tags }}" {% endif %} style="color: rgb(128, 24, 24);">{{ message }}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <script>
+                                          setTimeout(function () {
+                                            var container = document.getElementById('messages-container');
+                                            container.parentNode.removeChild(container);
+                      
+                                          }, 2500);
+                                        </script>
+                      
+                                      </div>
+                                    </div>
+                                    {% endif %}
+                                  </div>
+                                  {% csrf_token %}
+                                <div class="login-form">
+                                    <h4 class="login-title">Login</h4>
+                                    <div class="row">
+                                        <div class="col-md-12 col-12 mb-20">
+                                            <label>Email Address*</label>
+                                            <input class="mb-0" type="email" placeholder="Email Address" name="email">
+                                        </div>
+                                        <div class="col-12 mb-20">
+                                            <label>Password</label>
+                                            <input class="mb-0" type="password" placeholder="Password" name="pass">
+                                        </div>
+                                        <!-- <div class="col-md-8">
+                                            <div class="check-box d-inline-block ml-0 ml-md-2 mt-10">
+                                                <input type="checkbox" id="remember_me">
+                                                <label for="remember_me">Remember me</label>
+                                            </div>
+                                        </div> -->
+                                        <div class="col-md-4 mt-10 mb-20 text-left text-md-right">
+                                            <a href="" data-toggle="modal" data-target="#forgotPasswordModal"> Forgotten password?</a>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 text-left">
+                                                <button class="register-button mt-0" type="submit">Login</button>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <a href="{% url 'signup' %}"> Don't have account?</a>
+                                            </div>
+                                        </div>
+                                        </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Login Content Area End Here -->
+
+
+             <!-- Modal for forgot password -->
+  <div class="modal" id="forgotPasswordModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 style="font-weight: bold;" class="modal-title">Forgot Password</h5>
+          <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button> -->
+        </div>
+        <div class="modal-body">
+            <form method="post" action="{% url 'forgot_password' %}">
+
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="email">Enter your email:</label>
+              <input name="email" type="email" class="form-control" id="email" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+        {% endblock content %}
+           
+
+
+
+
+        <!-- <div class="col-lg-9 col-md-9">
+          <div class="slider-area slider-area-3 pt-sm-30 pt-xs-30 pb-xs-30">
+              <div class="slider-active owl-carousel">
+                  {% for item in banner %}
+                      <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                          <img class="d-block w-100" src="{{ item.image.url }}" alt="{{ item.description }}">
+                          <div class="carousel-caption d-none d-md-block">
+                              <h5>{{ item.description }}</h5>
+                              <p>{{ item.offer_description }}</p>
+                          </div>
+                      </div>
+                  {% endfor %}
+              </div>
+              <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+              </a>
+          </div>
+      </div>
+       -->

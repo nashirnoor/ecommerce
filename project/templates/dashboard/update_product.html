@@ -1,0 +1,123 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+        <div class="page-wrapper">
+            <div class="content">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <h4 class="page-title">Edit Products</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <form action="{% url 'update' product.id %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %} 
+                            <div class="form-group">
+                                <label>Product Name</label>
+                                <input class="form-control" type="text"
+                                placeholder="Enter Product name" maxlength="100"
+                                name= "product_name" value="{{ product.product_name }}"
+                                required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input class="form-control" type="text" 
+                                placeholder="Enter Description here" maxlength="1000"
+                                name= "description" value= "{{ product.description }}"
+                                required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>   
+                                <select class="form-control" name="category" required>
+                                    <option value="" selected disabled>Select a category</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.category_name }}" {% if category.category_name == product.category.category_name %}selected{% endif %}>
+                                            {{ category.category_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>stock</label>
+                                <input class="form-control" type="number" required min="0"
+                                       placeholder="Enter the stock"
+                                       name="stock" value="{{ product.stock }}"
+                                       step="1" >
+                            </div>
+                            <div class="form-group">
+                                <label>price</label>
+                                <input class="form-control" type="number" required min="0"
+                                       placeholder="Enter the price"
+                                       name="price" value="{{ product.price }}" 
+                                       step="1" >
+                            </div>
+                            <!-- <div class="form-group">
+                                <label>offer %</label>
+                                <input class="form-control" type="number" min="0"
+                                       placeholder="Enter the offer %"
+                                       name="offer" value="{{ product.product_offer }}"
+                                       step="1" >
+                            </div> -->
+                            <div class="form-group">
+                                <label>Current Image</label>
+                                <br>
+                                <br>
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="Current Image" style="max-width: 200px;">
+                                    <br>
+                                    <label for="replace_image">Replace Image:</label>
+                                    <input type="file" name="replace_image" id="replace_image" accept="image/*">
+                                {% else %}
+                                    <p>No current image available</p>
+                                {% endif %}
+                            </div>
+                                                       
+                            <div class="form-group">
+                                <label>Multiple Images</label>
+                                <input name="mulimage" type="file" class="form-control" multiple>
+                            
+                                {% if product.additional_images.all %}
+                                    <p>Existing Images:</p>
+                                    <div class="existing-images">
+                                        {% for image in product.additional_images.all %}
+                                            <div>
+                                                <img src="{{ image.image.url }}" alt="Existing Image" style="max-width: 100px;">
+                                                <input type="checkbox" name="remove_image_{{ image.id }}">
+                                                <label for="remove_image_{{ image.id }}">Remove Image</label>
+                                                <input name="replace_image_{{ image.id }}" type="file" class="form-control">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p>No existing images available</p>
+                                {% endif %}
+                            </div>
+                                                      
+                            <!-- <div class="form-group">
+                                <label>Multiple Image</label>
+                                <input name="mulimage" type="file" class="form-control" value="{{ product.image.url }}" multiple >
+                            </div> -->
+                          
+                            <div class="form-group">
+                                <label for="is_listed">Listed:</label>
+                                <input type="checkbox" id="is_listed" name="is_listed" {% if product.is_listed %}checked{% endif %}>
+                            </div>  
+                            <div class="row">
+                                <div class="modal-footer">
+                                    <a href="{% url 'products' %}"><input type="button" class="btn btn-default" data-dismiss="" value="Cancel"></a>
+                                    <input type="submit" class="btn btn-success" value="Update">
+                                    {% if error_message %}
+    <div class="alert alert-danger">
+        {{ error_message }}
+    </div>
+{% endif %}
+                                </div>
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+ 

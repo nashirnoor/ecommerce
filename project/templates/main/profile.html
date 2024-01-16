@@ -1,0 +1,170 @@
+
+{% extends 'main/base.html' %}
+{% load static %}
+{% block content %}
+<!------ Include the above in your HEAD tag ---------->
+<div class="container emp-profile">
+    <form method="post">
+        <div class="row">
+            <div class="col-md-4">
+                
+                <br>
+                <br>
+                <a href="{% url 'user:address' %}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="true">Manage Address</a>
+                <div class="card border-dark mb-3" style="max-width: 18rem;">
+                    <div class="card-header">{{ default_address.address_name }}</div>
+                    <div class="card-body text-dark">
+                      <h5 class="card-title">{{ default_address.first_name }} {{ default_address.last_name }}</h5>
+                      <p class="card-text">{{ default_address.address_1 }}</p>
+                      <p class="card-text">{{ default_address.address_2 }}</p>
+                      <p class="card-text">{{ default_address.city }}</p>
+                      <p class="card-text">{{ default_address.state }}</p>
+                      <p class="card-text">{{ default_address.address_name }}</p>
+                      <p class="card-text">{{ default_address.pin }}</p>
+                      <p class="card-text">{{ default_address.phone }}</p>
+                    </div>
+                  </div>
+                  
+            
+            
+            </div>
+            <div class="col-md-8">
+                <!-- Move the user details to the right side -->
+                <div class="profile-head">
+                    <br>
+                    <h5></h5>
+                    <p class="proile-rating">{{ customer.email }}</p>
+                        <br>
+                    <div class="tab-content profile-tab" id="myTabContent">
+                        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">About</a>
+                                </li>
+                            </ul>
+                            <br>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>First Name</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>{{ customer.first_name }} </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Last Name</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>{{ customer.last_name }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Email</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>{{ customer.email }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Phone</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>{{ customer.number }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Wallet Balance</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>₹ {{ customer.wallet_bal }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Refferal Code:</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>{{ customer.referral_code }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Refferal Amount:</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>₹{{ customer.referral_amount }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">                           
+                                <button style="text-decoration: underline;" type="button" class="btn bg-white" data-toggle="modal" data-target="#exampleModalLongs">
+                                    Change Password
+                                </button>
+                            </div> 
+                        </div>
+                        
+                       
+                    </div>
+                    <a href="{% url 'user:edit_profile' %}" class="btn btn-secondary btn active" role="button" aria-pressed="true">Edit profile</a>
+                    {% for message in messages %}
+                    <div id="success-message" class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                
+                <script>
+                $(document).ready(function() {
+                    // Set a timeout to fade out the success message after 3000 milliseconds (3 seconds)
+                    setTimeout(function() {
+                        $("#success-message").fadeOut("slow");
+                    }, 3000);
+                });
+                </script>
+                   </div>
+                
+            </div>
+        </div>
+        
+    </form>
+
+    <div class="modal fade" id="exampleModalLongs" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLongTitle">Change Password</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+             
+                <form method="POST" action="{% url 'user:change_password' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <label>Old Password</label>
+                        <input name="old" type="password" class="form-control" required>
+                
+                        <label>New Password</label>
+                        <input name="new_password1" type="password" class="form-control" required>
+                
+                        <label>Confirm Password</label>
+                        <input name="new_password2" type="password" class="form-control" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+          
+          </div>
+        </div>
+      </div>
+    
+
+</div>
+{% endblock content %}

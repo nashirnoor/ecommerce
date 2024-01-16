@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center mb-4" style="color: grey;">Edit Profile</h2>
+            <form action="{% url 'user:edit_profile' %}" method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputEmail4">First name</label>
+                        <input type="text" class="form-control" name="first_name" placeholder="First Name" required value="{{ user.first_name }}">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputPassword4">Last name</label>
+                        <input type="text" class="form-control" name="last_name" placeholder="Last name" required value="{{ user.last_name }}">
+                    </div>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputZip">Phone</label>
+                    <input type="text" class="form-control" name="phone" placeholder="Phone number" required value="{{ user.number }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputZip">Email</label>
+                    <input type="email" class="form-control" name="email" placeholder="Email" required value="{{ user.email }}">
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-warning">Save</button>
+                    <br>
+                    <br>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
