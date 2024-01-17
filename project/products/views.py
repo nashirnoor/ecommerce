@@ -1,23 +1,21 @@
-from django.shortcuts import render,redirect,HttpResponse
 from django.views.decorators.cache import cache_control,never_cache
 from .models import Product,Category,Wishlist,Cart,Order,OrderItem,Wallet
 from user.models import Customer,Address
-from django.contrib.auth.models import AnonymousUser
 from . models import ProductImage
 from django.contrib import messages
 from django.core.paginator import Paginator
-from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import AnonymousUser
 from django.http import JsonResponse
 import json
 from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404    
+from django.shortcuts import render, redirect, get_object_or_404,HttpResponse    
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.shortcuts import render, redirect
 from .models import Brand
+from django.db.models import F
+from decimal import Decimal
+
 
 
 
@@ -44,8 +42,6 @@ def delete_brand(request, brand_id):
 
 
 
-def arr(request):
-    return render(request,'main/order_view.html')
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 @never_cache  
@@ -104,7 +100,6 @@ def search(request):
 @never_cache  
 def add_product(request):
     if 'admin' in request.session:
-        # offer = None
         brands = Brand.objects.all()
         if request.method == 'POST':
             product_name = request.POST.get('product_name')
@@ -120,19 +115,15 @@ def add_product(request):
             product_offer = request.POST.get('offer')
             selected_brand = Brand.objects.get(id=brand_id)
             
-            # Get the category percentage discount
             category_percentage = category.category_offer
 
             
-
-             # Check if the 'image' field has a valid file format
             if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
                 error_message = "Invalid file format for the main image. Please upload images only."
                 categories = Category.objects.all()
                 context = {'categories': categories, 'error_message': error_message}
                 return render(request, 'dashboard/add_product.html', context)
 
-            # Check if each file in the 'images' field has a valid file format
             for img in images:
                 if not img.name.lower().endswith(('.png', '.jpg', '.jpeg')):
                     error_message = "Invalid file format for additional images. Please upload images only."
@@ -148,7 +139,6 @@ def add_product(request):
                 context = {'categories': categories, 'error_message': error_message}
                 return render(request, 'dashboard/add_product.html', context)
             
-             # Check for whitespace-only values
             if any(value.strip() == '' for value in [product_name, description, category_name, stock, price]):
                 error_message = "Whitespace-only values are not allowed."
                 messages.error(request, error_message)
@@ -157,66 +147,51 @@ def add_product(request):
                 return render(request, 'dashboard/add_product.html', context)
 
             try:
-                # Attempt to convert the price to Decimal
                 price = Decimal(price)
             except (TypeError, ValueError):
-                # Handle the case where conversion fails
                 print("Conversion to Decimal failed. Value:", price)
-                price = Decimal('0')  # Default to 0 or any other appropriate value
+                price = Decimal('0') 
 
             print("Price after conversion:", price)
 
-            # Calculate discounted price based on category offer
             if category_percentage is not None:
                 category_discount = (category_percentage / 100) * price
                 discounted_price = price - category_discount
-                # Ensure discounted price is not negative
                 discounted_price = max(discounted_price, Decimal(0))
                 print("Discounted Price:", discounted_price)
             else:
                 discounted_price = price
                 print("Original Price (no discount):", discounted_price)
 
-            # Create the product instance with the calculated price
             product = Product.objects.create(
                 product_name=product_name,
                 description=description,
                 category=category,
                 stock=stock,
-                price=price,  # Use the original price
+                price=price,  
                 discounted_price=discounted_price,
-                product_offer=product_offer,  # Use the calculated price
+                product_offer=product_offer,  
                 image=image,
                 is_listed=is_listed,
             )
 
-            # Save additional images
             for img in images:
                 ProductImage.objects.create(product=product, image=img)
 
-            # Update the discounted price and save the product again
             product.discounted_price = discounted_price
             product.save()
-
             return redirect('products') 
 
         categories = Category.objects.all()
         context = {
             'categories': categories,
             # 'product_offer': offer,
-              'brands': brands,  # Add product_offer to the context
+              'brands': brands,  
         }
         return render(request, 'dashboard/add_product.html', context)
     else:
         return redirect('admin')
 
-
-
-
-
-from django.db.models import F
-
-from django.db.models import F
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @never_cache    
@@ -228,7 +203,6 @@ def userproductpage(request):
     elif sort_option == "high":
         data = Product.objects.filter(is_listed=True).order_by(F("price").desc())
     else:
-        # Handle other sorting options or set a default sorting
         data = Product.objects.filter(is_listed=True).order_by("price")
 
     paginator = Paginator(data, 9)
@@ -245,7 +219,6 @@ def userproductpage(request):
         if product.category.category_offer is not None:
             category_discount = (product.category.category_offer / 100) * product.price
             discounted_price = product.price - category_discount
-            # Ensure discounted price is not negative
             discounted_price = max(discounted_price, Decimal(0))
             product.discounted_price = discounted_price
             product.save()
@@ -259,7 +232,6 @@ def userproductpage(request):
         'sort_option': sort_option,
         'total_product_count': paginator.count,
     }
-
     return render(request, 'main/product_list.html', context)
 
 
@@ -288,7 +260,6 @@ def editproduct(request, product_id):
             'product'    : product,
             'categories' : categories,
         }
-
         return render(request, 'dashboard/update_product.html', context)
     else:
         return redirect('admin')
@@ -365,15 +336,7 @@ def update(request, id):
         return render(request, 'dashboard/update_product.html', context)
 
 
-
-###### CART ######################################################   
-
-from decimal import Decimal
-
-# Import other necessary modules and classes
-
 def calculate_effective_offer(product):
-    # Calculate the effective offer by comparing category and product offers
     effective_offer = max(product.category.category_offer, product.product_offer)
     return effective_offer
 
@@ -395,7 +358,6 @@ def update_cart(request, product_id):
     cart_item = get_object_or_404(Cart, product_id=product_id, user=user)
     cart_item.quantity = quantity
     cart_item.save()
-
     return JsonResponse({'message': 'Cart item updated.'}, status=200)
 
 
@@ -426,19 +388,17 @@ def remove_from_cart(request, cart_item_id):
             cart_item.delete()
 
         except Cart.DoesNotExist:
-            print("hhhhhhhhhhhh")
+            print("Cart doesn't Exist!")
         
         return redirect('cart')
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import AnonymousUser
+
 
 @login_required(login_url='login') 
 def wishlist(request):
     user = request.user
     if isinstance(user, AnonymousUser):
-        return redirect('login')  # Redirect to the login page
+        return redirect('login')  
     else:
         wishlist_items = Wishlist.objects.filter(user=user)
         wishlist_count = wishlist_items.count()
@@ -500,12 +460,10 @@ def checkout(request):
         for cart_item in cart_items:
             if cart_item.product.category.category_offer:
                 itemprice2 = (cart_item.product.price - cart_item.product.category.category_offer) * (cart_item.quantity)
-                subtotal += itemprice2  # Accumulate subtotal for each item
-                print(subtotal,"hhhhhhhhhhhh")
+                subtotal += itemprice2  
             else:
                 itemprice2 = (cart_item.product.price) * (cart_item.quantity)
-                subtotal += itemprice2  # Accumulate subtotal for each item
-                print(subtotal,"hhhhhhhhhhhh")
+                subtotal += itemprice2  
 
         shipping_cost = 10 
         discount = request.session.get('discount', 0)
@@ -529,16 +487,16 @@ def checkout(request):
             'total': total,
             'user_addresses': user_addresses,
             'discount_amount': discount,
-            'itemprice': itemprice2  # This will be the itemprice2 of the last item in the loop
+            'itemprice': itemprice2  
         }
         return render(request, 'main/checkout.html', context)
     else:
         return redirect('signup')
 
 def calculate_effective_offer(product):
-    # Calculate the effective offer by comparing category and product offers
     effective_offer = max(product.category.category_offer, product.product_offer)
     return effective_offer
+
 @login_required
 def placeorder(request):
     user = request.user
@@ -554,12 +512,10 @@ def placeorder(request):
         messages.info(request, "Input Address!!!")
         return redirect("checkout")
 
-    # Retrieve the selected address from the database
     address = Address.objects.get(id=address_id)
     payment = request.POST.get("payment")
 
     for cart_item in cart_items:
-        # Check if the requested quantity is available in stock
         product = cart_item.product
 
         if cart_item.quantity > product.stock:
@@ -570,14 +526,12 @@ def placeorder(request):
         item_price = product.price * cart_item.quantity
 
         if effective_offer > 0:
-            # Apply the effective offer as a percentage
             discount_amount = (effective_offer / Decimal('100.0')) * item_price
             item_price -= discount_amount
 
         subtotal += item_price
         
 
-        # Create a separate order for each product in the cart
         order = Order.objects.create(
             user=user,
             address=address,
@@ -619,7 +573,6 @@ def razorpay(request, address_id):
         item_price = product.price * cart_item.quantity
 
         if effective_offer > 0:
-            # Apply the effective offer as a percentage
             discount_amount = (effective_offer / Decimal('100.0')) * item_price
             item_price -= discount_amount
 
@@ -709,17 +662,7 @@ def customer_order(request):
         orders = Order.objects.filter(user=user).order_by("-id")
         for order in orders:
             order_items = order.order_items.all()
-            for order_item in order_items:
-                print(f"Order ID: {order.id}")
-                print(f"Order Item ID: {order_item.id}")
-                print(f"Amount: {order.amount}")
-                print(f"Payment Type: {order.payment_type}")
-                print(f"Status: {order.status}")
-                print(f"Date: {order.date}")
-                print(f"Order Item Quantity: {order_item.quantity}")
-                print(f"Order Item Image: {order_item.image}")
-                print("---")
-           
+ 
         context = {
             "orders": orders,
         }
@@ -755,15 +698,10 @@ from decimal import Decimal
 from django.utils import timezone
 
 def handle_cancellation(order):
-    # Check if the payment type is 'razorpay'
     if order.payment_type == 'razorpay':
-        # Get the related order items
         order_items = order.order_items.all()
-
-        # Calculate the total amount to be credited
         total_amount = sum(order_item.product.price * order_item.quantity for order_item in order_items)
 
-        # Create a Wallet entry and credit the amount to the user's wallet
         wallet = Wallet.objects.create(
             user=order.user,
             order=order,
@@ -773,7 +711,6 @@ def handle_cancellation(order):
         )
         wallet.save()
 
-        # Restock the products and update user's wallet balance
         for order_item in order_items:
             product = order_item.product
             product.stock += order_item.quantity
@@ -781,11 +718,6 @@ def handle_cancellation(order):
 
             order.user.wallet_bal += order_item.product.price * order_item.quantity
             order.user.save()
-
-
-
-
-
 
 
 
@@ -799,7 +731,6 @@ def restock_products(order):
 
 
 def cancel_order(request, order_id, order_item_id):
-    print("hhhhhhhhhhhhhhhhhhhhhhh")
     user = request.user
     usercustm = Customer.objects.get(email=user)
     try:
@@ -809,7 +740,6 @@ def cancel_order(request, order_id, order_item_id):
         return render(request, 'order_not_found.html')
 
     if order.status in ["completed", "processing","pending"]:
-        # Create a Wallet entry and credit the amount to the user's wallet
         wallet = Wallet.objects.create(
             user=user,
             order=order,
@@ -817,16 +747,12 @@ def cancel_order(request, order_id, order_item_id):
             status="Credited",
         )
         wallet.save()
-        # Restock the product
         product = order_item.product
         product.stock += order_item.quantity
         product.save()
-        # Update user's wallet balance
         usercustm.wallet_bal += order_item.product.price * order_item.quantity
         usercustm.save()
-    # Delete the order item
     order_item.delete()
-    # If there are no more items in the order, set the order status to cancelled
     if order.order_items.count() == 0:
         order.status = "cancelled"
         order.save()
@@ -834,7 +760,6 @@ def cancel_order(request, order_id, order_item_id):
     return redirect("order_details", order_id)
 
 def return_order(request, order_id, order_item_id):
-    print("RRRRRRRRRRRRRRRRRRRRRRRRRRR")
     user = request.user
     usercustm = Customer.objects.get(email=user)
     try:
@@ -844,7 +769,6 @@ def return_order(request, order_id, order_item_id):
         return render(request, 'order_not_found.html')
 
     if order.status in ["completed", "delivered"]:
-        # Create a Wallet entry and credit the amount to the user's wallet
         wallet = Wallet.objects.create(
             user=user,
             order=order,
@@ -852,16 +776,12 @@ def return_order(request, order_id, order_item_id):
             status="Credited",
         )
         wallet.save()
-        # Restock the product
         product = order_item.product
         product.stock += order_item.quantity
         product.save()
-        # Update user's wallet balance
         usercustm.wallet_bal += order_item.product.price * order_item.quantity
         usercustm.save()
-    # Delete the order item
     order_item.delete()
-    # If there are no more items in the order, set the order status to cancelled
     if order.order_items.count() == 0:
         order.status = "Return successful"
         order.save()
@@ -952,11 +872,8 @@ def addcoupon(request):
         return redirect("coupon")
 
 
-from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Cart, Coupon
-from decimal import Decimal
-from django.contrib.auth.decorators import login_required
 
 @login_required(login_url='login') 
 def cart(request):
@@ -968,17 +885,14 @@ def cart(request):
         cart_items = Cart.objects.filter(user=user).order_by("id")
 
     if request.method == "POST":
-        print("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
         coupon_code = request.POST.get("coupon_code")
 
-        # Validate the coupon
         try:
             coupon = Coupon.objects.get(coupon_code=coupon_code, expired=False)
         except Coupon.DoesNotExist:
             messages.error(request, "Invalid or expired coupon code")
             return redirect("cart")
 
-        # Apply the coupon to each cart item
         for cart_item in cart_items:
             cart_item.coupon = coupon
             cart_item.save()
@@ -996,11 +910,9 @@ def cart(request):
             cart_item.quantity = cart_item.product.stock
             cart_item.save()
 
-        # Calculate item price considering category offer as a percentage
         item_price = cart_item.product.price * cart_item.quantity
         effective_offer = calculate_effective_offer(cart_item.product)
         if effective_offer > 0:
-            # Apply the effective offer as a percentage
             discount_amount = (effective_offer / Decimal('100.0')) * item_price
             item_price -= discount_amount
 
@@ -1018,7 +930,7 @@ def cart(request):
     total_discount = sum(cart_item.coupon.discount_price for cart_item in cart_items if cart_item.coupon)
     total = subtotal - total_discount + shipping_cost
 
-    request.session['cart_subtotal'] = str(subtotal)  # Convert to string to handle Decimal serialization
+    request.session['cart_subtotal'] = str(subtotal)  
     request.session['cart_total'] = str(total)
 
     coupons = Coupon.objects.all()
@@ -1100,23 +1012,16 @@ def apply_coupon(request):
             "discount_amount": coupon.discount_price,
         }
 
-        return render(request, "cart.html", context)
+        return render(request, "main/cart.html", context)
 
     return redirect("cart")
 
 
 
-
-
-
-
-
 def generate_invoice(request, order_id):
-    # Fetch the order and related order items
     order = get_object_or_404(Order, pk=order_id)
     order_items = OrderItem.objects.filter(order=order)
 
-    # Retrieve the user's address
     user_address = Address.objects.filter(user=request.user, default=True).first()
 
     # Calculate total amount

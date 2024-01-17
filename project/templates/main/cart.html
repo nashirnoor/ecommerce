@@ -1,28 +1,7 @@
 {% extends 'main/base.html' %}
 {% load static %}
 {% block content %}
-<div id="messages-container">
-    {% if messages %}
-        <ul class="messages text-primary" style="list-style: none;">
-            {% for message in messages %}
-                {% if message.tags == 'success' %}
-                    <li class="success">{{ message }}</li>
 
-                {% elif message.tags == 'error' %}
-                    <li class="error">{{ message }}</li>
-
-                {% elif message.tags == 'warning' %}
-                    <li style="color: red;" class="warning">{{ message }}</li>
-
-                {% else %}
-                    <li>{{ message }}</li>
-
-                {% endif %}
-
-            {% endfor %}
-        </ul>
-    {% endif %}
-</div>
             <!-- Header Area End Here -->
             <!-- Begin Li's Breadcrumb Area -->
             <div class="breadcrumb-area">
@@ -41,7 +20,7 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-12">
-                            <form action="#">
+                            <div action="#">
                                 <div class="table-content table-responsive">
                                     <table class="table table-bordered text-center mb-0">
                                         <thead class="bg-yellow text-dark">
@@ -119,13 +98,14 @@
                                                         {% endfor %}
                                                     </datalist>
                                                     <div class="input-group-append">
-                                                        <button class="btn btn-primary" type="button">Apply Coupon</button>
+                                                        <button class="btn btn-primary" type="submit">Apply Coupon</button>
                                                     </div>
                                                 </div>
                                             </form>
-                                            <div class="coupon2">
+                                            <!-- <a href="{% url 'login' %}?coupon_value=your_coupon_code">Apply Coupon</a> -->
+                                            <!-- <div class="coupon2">
                                                 <input class="button" name="update_cart" value="Update cart" type="submit">
-                                            </div>
+                                            </div> -->
                                         </div>
                                        
 
@@ -156,24 +136,6 @@
                                     </div>
                                 </div>
 
-
-                             
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                 <div class="row">
                                     <div class="col-md-5 ml-auto">
                                         <div class="cart-page-total">
@@ -200,31 +162,11 @@
                                             <a href="">Cart is empty</a>
                                             {% endif %}
                                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                     </div>
                                 </div>
                                 
-                            </form>
+                            </div>
+                           
                         </div>
                     </div>
                 </div>
@@ -298,6 +240,8 @@
             $('#messages-container').fadeOut('slow');
         }, 1000); // 1 second delay before fading out
     });
+
+    
 </script>
 
                 <!--Shopping Cart Area End-->

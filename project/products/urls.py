@@ -21,9 +21,7 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('aaaa/',views.arr),
-        path('apply_coupon/', views.apply_coupon, name='apply_coupon'),
-
+    path('apply_coupon/', views.apply_coupon, name='apply_coupon'),
     path('products/',views.product,name='products'),
     path('edit/<int:product_id>/',views.editproduct,name='edit_product'),
     path('product/<int:id>/update/', views.update, name='update'),
@@ -35,7 +33,6 @@ urlpatterns = [
     path('add_to_cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('coupon/',views.coupon,name = 'coupon'),
     path('addcoupon/',views.addcoupon,name='addcoupon'),
-    # path('apply_coupon/', views.apply_coupon, name='apply_coupon'),
     path('remove_from_cart/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('wishlist/',views.wishlist, name='wishlist'),
     path('addtowishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
@@ -60,13 +57,5 @@ urlpatterns = [
     path('add_brand/', views.add_brand, name='add_brand'),
     path('display_brands/', views.display_brands, name='display_brands'),
     path('delete_brand/<int:brand_id>/', views.delete_brand, name='delete_brand'),
-
-
-
-    
-
-
-
-
     
 ]+ static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

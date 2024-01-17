@@ -530,11 +530,20 @@ def home(request):
     for category in categories:
         category.product_count = category.product_set.count()
 
+
+    # Get the first 10 products (you may need to adjust the sorting logic as needed)
+    products = Product.objects.filter(is_listed=True).order_by('-id')[:10]
+
+    mobile_category = Category.objects.get(category_name='Mobile Phone')
+    products_mobile = Product.objects.filter(category=mobile_category, is_listed=True).order_by('-id')[:10]
+
     context = {
         'categories': categories,
         'banners': banners,
         'wishlist': wishlist,
         'user_id': user_id,
+        'products': products,
+        'products_mobile': products_mobile,
     }
 
     return render(request, 'main/home.html', context)
