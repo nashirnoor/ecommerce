@@ -13,7 +13,7 @@ urlpatterns = [
     path('category_products/<int:id>/', views.category_products, name='category_products'),
     path('usercategory/',views.usercategory,name='usercategory'),
     path('searchcategory/',views.searchcategory,name='searchcategory'),
-
+    path('searchcategoryuser/',views.searchcategoryuser,name='searchcategoryuser')
 
 
 ]+ static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

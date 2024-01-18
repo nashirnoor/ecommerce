@@ -1,4 +1,3 @@
-
 from django.shortcuts import render,redirect
 from django.views.decorators.cache import cache_control,never_cache
 from .models import Category
@@ -10,7 +9,6 @@ from .forms import CategoryForm
 def category_products(request, id):
     main_category = Category.objects.get(pk=id)
     products = Product.objects.filter(category=main_category, is_deleted=False)
-
     return render(request, "main/product_list.html", {'data': products})
 
 
@@ -26,9 +24,7 @@ def usercategory(request):
 @never_cache  
 def category(request):
     if 'admin' in request.session:
-        categories = Category.objects.all().order_by('id')
-        
-        
+        categories = Category.objects.all().order_by('id')                
         paginator = Paginator(categories, per_page=5)  
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -58,8 +54,6 @@ def add_category(request):
     else:
         return redirect('admin')
 
-
-#Fetch existing data 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 @never_cache  
 def editcategory(request, category_id):
@@ -73,6 +67,9 @@ def editcategory(request, category_id):
         return render(request, 'dashboard/edit_category.html', context)
     else:
         return redirect ('admin')
+    
+
+
 
 from django.shortcuts import render,redirect
 from .models import Category
@@ -140,4 +137,34 @@ def searchcategory(request):
 
     else:
         return redirect("admin")
+    
+from django.db.models import Q
+
+
+@never_cache
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def searchcategoryuser(request):
+    if "email" in request.session:
+        query = request.GET.get("q")
+        if query:
+            results = Category.objects.filter(Q(category_name__icontains=query) & Q(is_listed=True))
+        else:
+            results = Category.objects.filter(is_listed=True)
+
+        paginator = Paginator(results, 10)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            "categories": page_obj,
+            "query": query,
+        }
+
+        if not results:
+            messages.info(request, 'Category not found.')
+
+        return render(request, "main/main_categories.html", context)
+
+    else:
+        return redirect("login")
 

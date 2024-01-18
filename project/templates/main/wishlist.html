@@ -30,8 +30,11 @@
                             {% endif %}
                         </td>
                         <td class="align-middle text-center">
-                            <button class="btn btn-sm btn-primary" type="button" onclick="addToCart({{ wishlist_item.id }})">Add to Cart</button>
-                        </td>                    
+                            <a href="{% url 'add_to_cart' wishlist_item.product.id %}">
+                                <button class="btn btn-sm btn-primary" type="button">Add to Cart</button>
+                            </a>
+                        </td>
+                        
                         <td class="align-middle">
                             <form action="{% url 'remove_from_wishlist' wishlist_item.id %}" method="POST" id="remove_wishlist_form_{{ wishlist_item.id }}">
                                 {% csrf_token %}
@@ -46,18 +49,12 @@
 
 
     <script>
-        function addToCart(wishlistItemId) {
+      function addToCart(wishlistItemId) {
             // Trigger form submission
             document.getElementById(`remove_wishlist_form_${wishlistItemId}`).submit();
             // Remove the row from the wishlist table
             document.getElementById(`wishlist_row_${wishlistItemId}`).remove();
         }
-
-
-
-
-
-        // Place this script in your template or a linked JavaScript file
 
     </script>
 <!-- Wishlist Area End -->

@@ -90,7 +90,7 @@
                                         <div class="coupon-all">
                                             <form method="post" class="mb-5" action="{% url 'apply_coupon' %}">
                                                 {% csrf_token %}
-                                                <div class="input-group">
+                                                <div class="input-group" style="width: 27%;">
                                                     <input type="text" class="form-control p-4" placeholder="Coupon Code" list="couponList" name="coupon_code">
                                                     <datalist id="couponList">
                                                         {% for coupon in coupons %}

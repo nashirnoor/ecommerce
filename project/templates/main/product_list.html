@@ -27,7 +27,7 @@
                 <div class="container">
                     <div class="breadcrumb-content">
                         <ul>
-                            <li><a href="index.html">Home</a></li>
+                            <li><a href="{% url 'home' %}">Home</a></li>
                             <li class="active">Shop List Left Sidebar</li>
                         </ul>
                     </div>
@@ -62,7 +62,7 @@
                                     </div>
                                 </div>
                                 <!-- product-select-box start -->
-                                <div class="product-select-box">
+                                <!-- <div class="product-select-box">
                                     <div class="product-short">
                                         <p>Sort By:</p>
                                         <select class="nice-select">
@@ -75,7 +75,7 @@
                                             <option value="price-asc">Model (Z - A)</option>
                                         </select>
                                     </div>
-                                </div>
+                                </div> -->
                                 <!-- product-select-box end -->
                             </div>
                             <!-- shop-top-bar end -->
@@ -135,7 +135,7 @@
                                                                 <li class="add-cart"><a href="{% url 'add_to_cart' i.id %}">Add to cart</a></li>
                                                              
 
-                                                                <li class="wishlist"><a href=""><i class="fa fa-heart-o"></i>Add to wishlist</a></li>
+                                                                <li class="wishlist"><a href="{% url 'add_to_wishlist' i.id %}"><i class="fa fa-heart-o"></i>Add to wishlist</a></li>
 
                                                                 <li><a class="quick-view" data-toggle="modal" data-target="#exampleModalCenter" href="#"><i class="fa fa-eye"></i>Quick view</a></li>
                                                             </ul>
@@ -182,14 +182,19 @@
                                                                     </div>
                                                                     <h4><a class="product_name" href="{% url 'single_product' i.id %}">{{ i.product_name }} </a></h4>
                                                                     <div class="price-box">
-                                                                        <!-- <span class="new-price">₹{{ i.offer_price }}</span> -->
+                                                                        {% if i.category.category_offer %}
+                                                                        <span class="new-price new-price-2">₹ {{ i.discounted_price }}</span>
+                                                                        <span class="review-item">MRP ₹ <del>{{ i.price }}</del></span><p style="color: rgb(56, 133, 8);">-{{  i.category.category_offer }}%</p>
+                                                                        {% else %}
+                                                                        <span class="new-price new-price-2">MRP ₹ {{ i.price }}</span>
+                                                                        {% endif %}
                                                                     </div>
                                                                 </div>
                                                                 <div class="add-actions">
                                                                     <ul class="add-actions-link">
-                                                                        <li class="add-cart active"><a href="">Add to Ccart</a></li>
+                                                                        <li class="add-cart active"><a href="{% url 'add_to_cart' i.id %}">Add to Cart</a></li>
                                                                         <li><a href="#" title="quick view" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter"><i class="fa fa-eye"></i></a></li>
-                                                                        <li><a class="links-details" href="wishlist.html"><i class="fa fa-heart-o"></i></a></li>
+                                                                        <li><a class="links-details" href="{% url 'add_to_wishlist' i.id %}"><i class="fa fa-heart-o"></i></a></li>
                                                                     </ul>
                                                                 </div>
                                                             </div>
@@ -239,18 +244,7 @@
                                 <!-- category-sub-menu start -->
                                 <div class="category-sub-menu">
                                     <ul>
-                                        <li class="has-sub"><a href="# ">Prime Video</a>
-                                            <ul>
-                                                <li><a href="#">All Videos</a></li>
-                                                <li><a href="#">Winter Dresses</a></li>
-                                                <li><a href="#">Evening Dresses</a></li>
-                                                <li><a href="#">Summer Dresses</a></li>
-                                                <li><a href="#">T-Rent or Buy</a></li>
-                                                <li><a href="#">Your Watchlist</a></li>
-                                                <li><a href="#">Watch Anywhere</a></li>
-                                                <li><a href="#">Getting Started</a></li>  
-                                            </ul>
-                                        </li>
+                                
                                         <li class="has-sub"><a href="#">Computer</a>
                                             <ul>
                                                 <li><a href="#">TV & Video</a></li>
@@ -264,10 +258,10 @@
                                         </li>
                                         <li class="has-sub"><a href="#">Electronics</a>
                                             <ul>
-                                                <li><a href="#">Amazon Home</a></li>
-                                                <li><a href="#">Kitchen & Dining</a></li>
-                                                <li><a href="#">Bed & Bath</a></li>
-                                                <li><a href="#">Appliances</a></li>    
+                                                <li><a href="#">TV</a></li>
+                                                <li><a href="#">Camera</a></li>
+                                                <li><a href="#">Mobile Phone</a></li>
+                                                <li><a href="#">Home Appliances</a></li>    
                                             </ul>
                                         </li>
                                     </ul>

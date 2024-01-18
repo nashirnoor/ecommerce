@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import AnonymousUser
 from django.http import JsonResponse
 import json
+from django.contrib import messages
+from .models import Cart, Coupon
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404,HttpResponse    
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -197,6 +199,7 @@ def add_product(request):
 @never_cache    
 def userproductpage(request): 
     sort_option = request.GET.get("sort", "all")
+    data = Product.objects.all()
 
     if sort_option == "all":
         data = Product.objects.filter(is_listed=True).order_by("price")
@@ -238,10 +241,8 @@ def userproductpage(request):
 @never_cache
 def single_product(request, id):
     product = Product.objects.get(id=id)
-    # offer_price = int(product.price * (1 - product.product_offer / 100))
     context = {
         "product": product,
-        # "offer_price": offer_price,
     }
     return render(request, "main/single_product.html", context)
 
@@ -367,16 +368,32 @@ def add_to_cart(request, product_id):
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return redirect('product_not_found')
-
+    product = get_object_or_404(Product, id=product_id)
     quantity = request.POST.get('quantity', 1)
     if not quantity:
         quantity = 1
+
+    if not quantity:
+        quantity = 1
+    
+    # Check if the requested quantity is greater than the available stock
+    if int(quantity) > product.stock:
+        messages.error(request, f"Insufficient stock for {product.product_name}.")
+        return redirect('userproduct')
+    
     cart_item, created = Cart.objects.get_or_create(user=request.user, product=product)
     if created:
         cart_item.quantity = int(quantity)
     else:
         cart_item.quantity += int(quantity)
     cart_item.save()
+
+    try:
+        wishlist_item = Wishlist.objects.get(product=product, user=request.user)
+        wishlist_item.delete()
+    except Wishlist.DoesNotExist:
+        pass  
+
     return redirect('cart')
 
 
@@ -438,7 +455,7 @@ def add_to_wishlist(request, product_id):
     return redirect('wishlist')
 
 
-
+@login_required(login_url='login')
 def remove_from_wishlist(request, wishlist_item_id):
     wishlist_item = get_object_or_404(Wishlist, id=wishlist_item_id, user=request.user)
     wishlist_item.delete()
@@ -448,6 +465,79 @@ def remove_from_wishlist(request, wishlist_item_id):
 
 ############## PAYMENT AND ORDERS ####################
 
+@login_required(login_url='login') 
+def cart(request):
+    if "discount" in request.session:
+        del request.session["discount"]
+    if isinstance(request.user, AnonymousUser):
+        device_id = request.COOKIES.get("device_id")
+        cart_items = Cart.objects.filter(device=device_id).order_by("id")
+    else:
+        user = request.user
+        cart_items = Cart.objects.filter(user=user).order_by("id")
+
+    if request.method == "POST":
+        coupon_code = request.POST.get("coupon_code")
+
+        try:
+            coupon = Coupon.objects.get(coupon_code=coupon_code, expired=False)
+        except Coupon.DoesNotExist:
+            messages.error(request, "Invalid or expired coupon code")
+            return redirect("cart")
+
+        for cart_item in cart_items:
+            cart_item.coupon = coupon
+            cart_item.save()
+
+        messages.success(request, "Coupon applied successfully")
+
+    subtotal = 0
+    total_dict = {}
+
+    for cart_item in cart_items:
+        if cart_item.quantity > cart_item.product.stock:
+            messages.warning(
+                request, f"{cart_item.product.product_name} is out of stock."
+            )
+            cart_item.quantity = cart_item.product.stock
+            cart_item.save()
+
+        item_price = cart_item.product.price * cart_item.quantity
+        effective_offer = calculate_effective_offer(cart_item.product)
+        if effective_offer > 0:
+            discount_amount = (effective_offer / Decimal('100.0')) * item_price
+            item_price -= discount_amount
+
+        total_dict[cart_item.id] = item_price
+        subtotal += item_price
+
+    for cart_item in cart_items:
+       cart_item.total_price = total_dict.get(cart_item.id, 0)
+       print(cart_item.total_price)
+       cart_item.save()
+
+    shipping_cost = 10
+    total = subtotal + shipping_cost if subtotal else 0
+
+    total_discount = sum(cart_item.coupon.discount_price for cart_item in cart_items if cart_item.coupon)
+    total = subtotal - total_discount + shipping_cost
+
+    request.session['cart_subtotal'] = str(subtotal)  
+    request.session['cart_total'] = str(total)
+
+    coupons = Coupon.objects.all()
+
+    context = {
+        "cart_items": cart_items,
+        "subtotal": subtotal,
+        "total": total,
+        "coupons": coupons,
+    }
+    return render(request, "main/cart.html", context)
+
+
+
+
 
 @never_cache
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -456,6 +546,18 @@ def checkout(request):
         user = request.user
         cart_items = Cart.objects.filter(user=user)
         subtotal = 0
+
+        for cart_item in cart_items:
+            if cart_item.quantity > cart_item.product.stock:
+                messages.warning(
+                    request, f"{cart_item.product.product_name} is out of stock."
+                )
+                print("hhhhhh")
+                cart_item.quantity = cart_item.product.stock
+                cart_item.save()
+                return redirect('cart')
+
+        
 
         for cart_item in cart_items:
             if cart_item.product.category.category_offer:
@@ -469,11 +571,12 @@ def checkout(request):
         discount = request.session.get('discount', 0)
         if discount:
             total = subtotal + shipping_cost - discount if subtotal else 0
+            print(discount,"dddddddissssssss")
         else:
             total = subtotal + shipping_cost  if subtotal else 0
         
         subtotal = Decimal(request.session.get('cart_subtotal', 0))
-        total = Decimal(request.session.get('cart_total', 0))
+        total = Decimal(request.session.get('cart_total', 0)) - discount
         print(subtotal)
         print(total)
         request.session['subtotal'] = str(subtotal)
@@ -563,20 +666,7 @@ def razorpay(request, address_id):
     cart_items = Cart.objects.filter(user=user)
 
     subtotal = 0
-    for cart_item in cart_items:
-        if cart_item.quantity > product.stock:
-            messages.error(request, f"Insufficient stock for {product.product_name}.")
-            return redirect("checkout")
-
-        product = cart_item.product
-        effective_offer = calculate_effective_offer(product)
-        item_price = product.price * cart_item.quantity
-
-        if effective_offer > 0:
-            discount_amount = (effective_offer / Decimal('100.0')) * item_price
-            item_price -= discount_amount
-
-        subtotal += item_price
+    
 
     shipping_cost = 10
     total = subtotal + shipping_cost if subtotal else 0
@@ -820,9 +910,17 @@ def order_details(request, id):
 
 def proceedtopay(request):
     cart = Cart.objects.filter(user=request.user)
+    product = Product.objects.all()
     total = 0
     shipping = 10
     subtotal = 0
+    for cart_item in cart:
+        product = cart_item.product
+
+        if cart_item.quantity > product.stock:
+            messages.error(request, f"Insufficient stock for {product.product_name}.")
+            return redirect("checkout")
+        
     for cart_item in cart:
         if cart_item.product.category.category_offer:
             itemprice2 = (
@@ -834,6 +932,7 @@ def proceedtopay(request):
             itemprice = (cart_item.product.price) * (cart_item.quantity)
 
             subtotal = subtotal + itemprice
+
     for item in cart:
         discount = request.session.get("discount", 0)
     total = subtotal + shipping
@@ -872,76 +971,7 @@ def addcoupon(request):
         return redirect("coupon")
 
 
-from django.contrib import messages
-from .models import Cart, Coupon
 
-@login_required(login_url='login') 
-def cart(request):
-    if isinstance(request.user, AnonymousUser):
-        device_id = request.COOKIES.get("device_id")
-        cart_items = Cart.objects.filter(device=device_id).order_by("id")
-    else:
-        user = request.user
-        cart_items = Cart.objects.filter(user=user).order_by("id")
-
-    if request.method == "POST":
-        coupon_code = request.POST.get("coupon_code")
-
-        try:
-            coupon = Coupon.objects.get(coupon_code=coupon_code, expired=False)
-        except Coupon.DoesNotExist:
-            messages.error(request, "Invalid or expired coupon code")
-            return redirect("cart")
-
-        for cart_item in cart_items:
-            cart_item.coupon = coupon
-            cart_item.save()
-
-        messages.success(request, "Coupon applied successfully")
-
-    subtotal = 0
-    total_dict = {}
-
-    for cart_item in cart_items:
-        if cart_item.quantity > cart_item.product.stock:
-            messages.warning(
-                request, f"{cart_item.product.product_name} is out of stock."
-            )
-            cart_item.quantity = cart_item.product.stock
-            cart_item.save()
-
-        item_price = cart_item.product.price * cart_item.quantity
-        effective_offer = calculate_effective_offer(cart_item.product)
-        if effective_offer > 0:
-            discount_amount = (effective_offer / Decimal('100.0')) * item_price
-            item_price -= discount_amount
-
-        total_dict[cart_item.id] = item_price
-        subtotal += item_price
-
-    for cart_item in cart_items:
-       cart_item.total_price = total_dict.get(cart_item.id, 0)
-       print(cart_item.total_price)
-       cart_item.save()
-
-    shipping_cost = 10
-    total = subtotal + shipping_cost if subtotal else 0
-
-    total_discount = sum(cart_item.coupon.discount_price for cart_item in cart_items if cart_item.coupon)
-    total = subtotal - total_discount + shipping_cost
-
-    request.session['cart_subtotal'] = str(subtotal)  
-    request.session['cart_total'] = str(total)
-
-    coupons = Coupon.objects.all()
-
-    context = {
-        "cart_items": cart_items,
-        "subtotal": subtotal,
-        "total": total,
-        "coupons": coupons,
-    }
-    return render(request, "main/cart.html", context)
 
 
 
@@ -964,6 +994,7 @@ def apply_coupon(request):
         total_dict = {}
         coupons = Coupon.objects.all()
 
+
         for cart_item in cart_items:
             if cart_item.quantity > cart_item.product.stock:
                 messages.warning(
@@ -972,37 +1003,47 @@ def apply_coupon(request):
                 cart_item.quantity = cart_item.product.stock
                 cart_item.save()
 
-            if cart_item.product.category.category_offer:
-                item_price = (
-                    cart_item.product.price - cart_item.product.category.category_offer
-                ) * (cart_item.quantity)
-                total_dict[cart_item.id] = item_price
-                subtotal += item_price
+            item_price = cart_item.product.price * cart_item.quantity
+            effective_offer = calculate_effective_offer(cart_item.product)
+            if effective_offer > 0:
+                discount_amount = (effective_offer / Decimal('100.0')) * item_price
+                item_price -= discount_amount
 
-            elif cart_item.product.product_offer:
-                item_price = (
-                    cart_item.product.price
-                    - (cart_item.product.price * cart_item.product.product_offer / 100)
-                ) * cart_item.quantity
-                total_dict[cart_item.id] = item_price
-                subtotal += item_price
+            total_dict[cart_item.id] = item_price
+            subtotal += item_price
 
-            else:
-                item_price = cart_item.product.price * cart_item.quantity
-                total_dict[cart_item.id] = item_price
-                subtotal += item_price
+        for cart_item in cart_items:
+            cart_item.total_price = total_dict.get(cart_item.id, 0)
+            print(cart_item.total_price)
+            cart_item.save()
+
+        shipping_cost = 10
+        total = subtotal + shipping_cost if subtotal else 0
+
+        total_discount = sum(cart_item.coupon.discount_price for cart_item in cart_items if cart_item.coupon)
+        total = subtotal - total_discount + shipping_cost
+
+        request.session['cart_subtotal'] = str(subtotal)  
+        request.session['cart_total'] = str(total)
+
 
         if subtotal >= coupon.minimum_amount:
             messages.success(request, "Coupon applied successfully")
             request.session["discount"] = coupon.discount_price
             total = subtotal - coupon.discount_price + shipping_cost
+            print(total,"totttal")
+            print(subtotal,"subbbbb")
+            print(coupon.discount_price,"disssss")
         else:
+            print("Elseeeeeeeeeeeeeeee")
             messages.error(request, "Coupon not available for this price")
             total = subtotal + shipping_cost
 
         for cart_item in cart_items:
             cart_item.total_price = total_dict.get(cart_item.id, 0)
             cart_item.save()
+
+        
 
         context = {
             "cart_items": cart_items,
@@ -1029,11 +1070,9 @@ def generate_invoice(request, order_id):
     user_first_name = request.user.first_name
     user_last_name = request.user.last_name
 
-    # Calculate subtotal and total based on order items
     subtotal = sum(item.product.price * item.quantity for item in order_items)
-    total = subtotal  # Add shipping cost or other adjustments if needed
+    total = subtotal  
 
-    # Prepare context for rendering the template
     context = {
         'order': order,
         'order_items': order_items,
@@ -1051,8 +1090,6 @@ def generate_invoice(request, order_id):
     
 
 def download_invoice(request, order_id):
-    # Implement logic to generate/download the invoice content
-    # For demonstration purposes, return a simple response
     return HttpResponse("This is the invoice content.", content_type='application/pdf')
 
 

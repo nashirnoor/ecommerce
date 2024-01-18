@@ -2,6 +2,8 @@ from django.db import models
 from user.models import Customer,Address
 from category.models import Category
 from datetime import date
+from decimal import Decimal
+
 # Create your models here.
 
 class Product(models.Model):   
@@ -28,7 +30,8 @@ class Product(models.Model):
         effective_offer = max(self.category.category_offer, self.product_offer)
         self.offer = effective_offer
         # Calculate discounted price based on the effective offer
-        self.discounted_price = self.price * (1 - effective_offer / 100)
+        self.discounted_price = Decimal(self.price) * (1 - effective_offer / 100)
+
 
         super().save(*args, **kwargs)
         

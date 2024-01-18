@@ -24,7 +24,6 @@ from django.urls import include
 from products.views import proceedtopay
 from products.views import cancel_order
 from user.views import filter_sales
-
 urlpatterns = [
     # path('bbb/',views.bbb),
     # path('asdf/',views.asdf,name='asdf'),
