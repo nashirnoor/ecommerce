@@ -26,8 +26,10 @@ class Product(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
+        category_offer = Decimal(self.category.category_offer)
+        product_offer = Decimal(self.product_offer)
         # Calculate the effective offer by comparing category and product offers
-        effective_offer = max(self.category.category_offer, self.product_offer)
+        effective_offer = max(category_offer,product_offer)
         self.offer = effective_offer
         # Calculate discounted price based on the effective offer
         self.discounted_price = Decimal(self.price) * (1 - effective_offer / 100)

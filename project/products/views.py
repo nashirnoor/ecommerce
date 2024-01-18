@@ -157,6 +157,7 @@ def add_product(request):
             print("Price after conversion:", price)
 
             if category_percentage is not None:
+                price = Decimal(price)
                 category_discount = (category_percentage / 100) * price
                 discounted_price = price - category_discount
                 discounted_price = max(discounted_price, Decimal(0))
